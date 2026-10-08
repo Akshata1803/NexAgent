@@ -86,6 +86,11 @@ model Ticket {
   auditLogs   AuditLog[]
   kbEntries   KBEntry[]
   sla         TicketSLA?
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt(sort: Desc)])
 }
 
 model PipelineRun {
@@ -100,6 +105,10 @@ model PipelineRun {
 
   stepLogs    StepLog[]
   decisions   Decision[]
+
+  @@index([type])
+  @@index([status])
+  @@index([startedAt(sort: Desc)])
 }
 
 model StepLog {
@@ -115,6 +124,10 @@ model StepLog {
   completedAt   DateTime?
 
   pipelineRun   PipelineRun @relation(fields: [pipelineRunId], references: [id], onDelete: Cascade)
+
+  @@index([pipelineRunId])
+  @@index([status])
+  @@index([startedAt(sort: Desc)])
 }
 
 model Decision {
@@ -139,6 +152,7 @@ model Decision {
 
   @@index([createdAt(sort: Desc)])
   @@index([ticketId])
+  @@index([pipelineRunId])
   @@index([decision])
 }
 
@@ -153,6 +167,10 @@ model HumanOverride {
 
   decision          Decision        @relation(fields: [decisionId], references: [id], onDelete: Cascade)
   operator          User?           @relation(fields: [operatorId], references: [id], onDelete: SetNull)
+
+  @@index([decisionId])
+  @@index([operatorId])
+  @@index([overriddenAt(sort: Desc)])
 }
 
 model AuditLog {
@@ -185,6 +203,9 @@ model KBEntry {
   updatedAt             DateTime @updatedAt
 
   sourceTicket          Ticket?  @relation(fields: [sourceTicketId], references: [id], onDelete: SetNull)
+
+  @@index([sourceTicketId])
+  @@index([ingestedAt(sort: Desc)])
 }
 
 model Settings {
@@ -233,6 +254,9 @@ model AlertGroup {
 
   members      AlertGroupMember[]
 
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt(sort: Desc)])
   @@map("alert_groups")
 }
 
@@ -246,6 +270,8 @@ model AlertGroupMember {
 
   group        AlertGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
+  @@index([groupId])
+  @@index([alertId])
   @@map("alert_group_members")
 }
 

@@ -1,6 +1,7 @@
 import express, { Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { requestLogger } from './middleware/requestLogger.js';
 import { globalErrorHandler } from './middleware/errorHandler.js';
 import { authenticateJWT, AuthenticatedRequest } from './middleware/auth.js';
@@ -28,6 +29,17 @@ export const app = express();
 
 // ── Security headers ──────────────────────────────────────────────────────────
 app.use(helmet());
+
+// ── Global API rate limiting ──────────────────────────────────────────────────
+const globalApiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: process.env.NODE_ENV === 'test' ? 10000 : 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again later.' },
+  skip: (req) => req.path === '/health' || req.path.startsWith('/sse/'),
+});
+app.use(globalApiLimiter);
 
 // ── CORS — Fix #3 High: restricted to known origins, not wildcard ─────────────
 app.use(cors({
